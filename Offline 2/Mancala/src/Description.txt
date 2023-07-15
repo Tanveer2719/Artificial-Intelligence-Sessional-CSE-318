@@ -1,0 +1,23 @@
+Class Board
+have an array of 14 indices
+1-6 for human. 8-13 for computer, 0 for computer storage, 7 for human storage
+1-6 and 8-13 will have value 4 in each indices
+
+Board.makeMove(int i)
+i - the position from where the move will be made
+move -> the position will be empty
+        -the next positions will be incremented and the source will be decremented
+        -if the last bud stored in his storage then the player will get a chance 
+            to play again
+        -if the last bud falls in the same side of the player and the hole is empty 
+            then all the other buds in the opposite hole will be transferred to the 
+            storage and that hole will be empty
+
+isGameFinished()
+    check if the player has all the holes empty
+    check if the computer has all the holes empty
+
+
+adversarial search()
+    for true, update the alpha value
+    if alpha >= beta then stop branching
