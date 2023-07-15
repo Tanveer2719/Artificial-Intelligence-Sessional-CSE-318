@@ -55,12 +55,14 @@ int merge(vector<int>&arr, int left, int mid, int right){
 
 int  merge_sort(vector<int>&arr, int left, int right){
     int inversion_pair = 0;
+
     if(left < right){
         int mid = left + (right - left)/2;
         inversion_pair += merge_sort(arr, left, mid);
         inversion_pair += merge_sort(arr, mid+1, right);
         inversion_pair += merge(arr, left, mid, right);
     }
+
     return inversion_pair;
 }
 

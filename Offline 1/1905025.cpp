@@ -92,15 +92,20 @@ struct comp{
 
 void construct_path(Grid s){
     Grid *temp = &s;
-    temp->print_grid();
+    stack<Grid*> st;
+    st.push(temp);
     while(temp->parent != nullptr){
         temp = temp->parent;
-        temp->print_grid();
+        st.push(temp);
     }
-
+    while(!st.empty()){
+        st.top()->print_grid();
+        st.pop();
+    }
 
 }
 
+// returns the blank positon in the grid
 pair<int,int> blank_position(const Grid& a){
     int n = a.grid.size();
     for(int i = 0;i<n; i++){
@@ -113,6 +118,7 @@ pair<int,int> blank_position(const Grid& a){
     return make_pair(-1,-1);
 }
 
+// check if the grid is already in the set
 bool inset(Grid x, vector<Grid>c_set){
     int n = c_set.size();
     for(int i = 0;i<n;i++){
@@ -123,6 +129,7 @@ bool inset(Grid x, vector<Grid>c_set){
     return false;
 }
 
+// checks the equality of two grids
 bool equal(vector<vector<int>> a, vector<vector<int>>b){
     int n = a.size();
     for(int i = 0; i<n; i++){
@@ -135,6 +142,7 @@ bool equal(vector<vector<int>> a, vector<vector<int>>b){
     return true;
 }
 
+// we need to create new grids by moving the blankspace and then push it to the queue
 void add_to_queue(const Grid current, int o_x, int o_y, int n_x, int n_y, priority_queue<Grid, vector<Grid>, comp>& pq,vector<Grid>&c_set, int mode ){
     Grid new_grid = current;
     swap(new_grid.grid[n_x][n_y], new_grid.grid[o_x][o_y]); // swap the blank space
@@ -198,10 +206,7 @@ bool astar( Grid& start, Grid& goal, int mode){
 
         if(current == goal){
             cout<<"goal grid reached\ntotal no of moves needed = "<<current.p_moves<<"\n"<<endl;
-
-            for(auto x: c_set){
-                x.print_grid();
-            }
+            construct_path(current);
             return true;
 
             // construct_path(current);
@@ -270,7 +275,7 @@ int main(){
         for(int j = 0;j<k; j++){
             string s;
             cin>>s;
-            if(s =="*"){
+            if(s =="*" || s == "0"){
                 init.grid[i][j] = 0;
             }else{
                 init.grid[i][j] = stoi(s);
@@ -296,6 +301,7 @@ int main(){
     if(! solvable(init)){
         cout<<"Not solvable"<<endl;
     }else{
+        cout<<"solvable"<<endl;
         astar(init,des, 1); // 1 for manhattan method 0 for hamming method
     }
 
