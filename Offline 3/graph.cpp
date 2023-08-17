@@ -1,12 +1,17 @@
 #include<bits/stdc++.h>
 #define INF 1000000
-#define MAXITR 500
+#define MAXITR 100
 
 /*
 The idea got from the article: 
     https://mpc.zib.de/archive/2016/3/Santis2016_Article_ANonmonotoneGRASP.pdf
 */
 using namespace std;
+
+list<pair<int,int>> benchMarks({
+    {1,12078},{11,627},{12,621},{13,645}, {14 ,3187}, {15,3169}, {16,3172}, {34,1541}, {35, 8000}, {43, 7027}, {44, 7022}, {45, 7020}, {48,6000}, {49, 6000}, {50, 5988}
+    });
+
 
 int random_number(int s, int e){
     // Create a random number engine and seed it with the current time
@@ -49,7 +54,7 @@ public:
         }
     }
     
-    void readFromFile(string name){
+    pair<int, int> readFromFile(string name){
         ifstream readFile(name);
 
         string line;
@@ -85,6 +90,8 @@ public:
         }
 
         readFile.close();
+
+        return make_pair(nodes, edges);
 
     }
 
@@ -187,6 +194,8 @@ public:
         return RCL;
     }
 
+    //random
+    // no calculation, just assign each vertex randomly
     void findRandomSolution(ProblemInstance &problemInstance, vector<int>&solution){
        int vertices = problemInstance.getVertices();
        for(int i=1; i<= vertices; i++){
@@ -194,6 +203,9 @@ public:
        } 
     }
     
+    // greedy method
+    // if there is no edge between two nodes then, they are 
+    // randomly partitioned
     void findGreedySolution(ProblemInstance &problemInstance, vector<int>&solution){
         int vertices = problemInstance.getVertices();
         solution[problemInstance.graph.maxU - 1] = random_number(0,1);
@@ -221,6 +233,7 @@ public:
         
     }
     
+    // semigreedy method
     void findInitialSolution(ProblemInstance &problemInstance, vector<int>&solution, double alpha){
         int vertices = problemInstance.getVertices();
         
@@ -248,49 +261,24 @@ public:
             } 
         }
     }
-
-    int localSearch(ProblemInstance &problemInstance, vector<int>&solution){
-        vector<int>currentSolution = solution;
-        int currentValue = problemInstance.greedyValue(currentSolution);
-        int vertices = problemInstance.getVertices();
-        bool improved = true;
-
-        // for(int itr = 0; itr < 100; itr++)
-        while(improved){
-            improved = false;
-            // int srcVertex = random_number(1,vertices);  // randomly select a vertex to find its neighbors
-            
-            for(int i = 1; i <= vertices; i++ ){
-                vector<int>newSolution = currentSolution;
-                newSolution[i-1] = 1 - currentSolution[i-1];  // if currentsoln = 0 ,new soln = 1
-                int newValue = problemInstance.greedyValue(newSolution);
-
-                if(newValue > currentValue){
-                    currentSolution = newSolution;
-                    currentValue = newValue;
-                    improved = true;
-                    break;
-                }
-            }
-
-        }
-        solution = currentSolution;
-        return currentValue;
-    }
     
-    int localSearch2(ProblemInstance &problemInstance, vector<int>&solution){
+    pair<int, int> localSearch(ProblemInstance &problemInstance, vector<int>&solution){
         int count = 0;
         bool change = true;
+        int index = 1;          // this is used for a little optimization, inside local search
+                                // the for() loop will start from index and it will be updated
+                                // inside the for loop
         while(change){
             count ++;
             change = false;
-            for(int i = 1; i<=problemInstance.getVertices(); i++){
+            for(int i = index; i<=problemInstance.getVertices(); i++){
                 
                 if(solution[i-1] == 1){     //v belongs to S
                     int del = problemInstance.calculateSigma_S(i, solution) - problemInstance.calculateSigma_T(i, solution);
                     if(del > 0){
                         solution[i-1] = 1 - solution[i-1];
-                        change = true; 
+                        change = true;
+                        index = i; 
                         break;
                     }
                 }
@@ -299,13 +287,14 @@ public:
                     if(del > 0){
                         solution[i-1] = 1 - solution[i-1];
                         change = true;
+                        index = i;
                         break; 
                     }
                 }                
             }
         }
 
-        return problemInstance.greedyValue(solution);
+        return make_pair(count, problemInstance.greedyValue(solution));
     }
     
     /* GRASP method
@@ -315,78 +304,100 @@ public:
         find the best val from this and update best val
     */
     
-    void graspAlgorithm(ProblemInstance &problemInstance, double alpha){
+    void graspAlgorithm(ProblemInstance &problemInstance, double alpha, vector<int>&ret){
         
         int vertices = problemInstance.getVertices();
         vector<int>solution(vertices, -1);      // solution[i] =-1, 0, 1 -> the vertex in V, T or S respectively
         vector<int>bestSoln(vertices, -1);
         int bestVal = INT_MIN;                  // best val
         int sameCount = 0;
+        double avgLocalSearchItr = 0,avgLocalSearchVal = 0;
 
-        for(int i = 0 ; i<= MAXITR ; i++){
+
+        for(int i = 1 ; i<= MAXITR ; i++){
             findInitialSolution(problemInstance, solution, alpha);
-            int searchVal = localSearch2(problemInstance, solution);
-
-            if(searchVal > bestVal ){
-                bestVal = searchVal;
+            pair<int, int> searchVal = localSearch(problemInstance, solution);
+            
+            avgLocalSearchItr = (avgLocalSearchItr * (i-1) + searchVal.first) / i;
+            avgLocalSearchVal = (avgLocalSearchVal * (i-1) + searchVal.second) / i;
+            
+            if(searchVal.second > bestVal ){
+                bestVal = searchVal.second;
                 bestSoln = vector<int>(solution);
                 sameCount = 0;
             }
 
             solution = vector<int>(vertices, -1);
             sameCount ++; 
-            // if(sameCount == 10){        // If the value of 10 iterations are the same then, 
-            //                             // break the iteration phase
-            //     break;
-            // }
 
             cout<<i+1 << " : val = "<<bestVal<<endl;
 
         }
 
-        cout<<"The best solution is : "<<bestVal<<endl;
-        // cout<<"The solution set is : \n";
-        // for(auto x: bestSoln){
-        //     cout<<x<<" ";
-        // }
-        cout<<endl;
+        ret.push_back(avgLocalSearchItr);
+        ret.push_back(avgLocalSearchVal);
+        ret.push_back(MAXITR);
+        ret.push_back(bestVal);
     }
     
-    void constructSolution(ProblemInstance &problemInstance){
+    vector<int> constructSolution(ProblemInstance &problemInstance){
         int vertices = problemInstance.getVertices();
-        
+        vector<int>ret;
         vector<int>solution(vertices, -1);
+
         findRandomSolution(problemInstance, solution);
-        cout<<" Random Solution: "<<problemInstance.greedyValue(solution)<<endl;
+
+        ret.push_back(problemInstance.greedyValue(solution));
         
         solution = vector<int>(vertices, -1);
         findGreedySolution(problemInstance, solution);
-        cout<<" Greedy Solution: "<<problemInstance.greedyValue(solution)<<endl;
+        ret.push_back(problemInstance.greedyValue(solution));
 
         solution = vector<int>(vertices, -1);
         findInitialSolution(problemInstance, solution, 0.6);
-        cout<<" SemiGreedy Solution: "<< problemInstance.greedyValue(solution)<<endl;
+        ret.push_back(problemInstance.greedyValue(solution));
+
+        graspAlgorithm(problemInstance, 0.7, ret);
         
+
+        return ret;
     }
 };
 
 int main(){
-    Graph graph;
-    graph.readFromFile("random_graph.txt");
+    // Graph graph;
+    // graph.readFromFile("random_graph.txt");
 
-    ProblemInstance problemInstance(graph);
-    vector<int>s(graph.nodes, -1);
+    // ProblemInstance problemInstance(graph);
+    // vector<int>s(graph.nodes, -1);
 
-    // s[0] = s[1] = 1;
-    // s[2] = s[4] = 0;
+    // // s[0] = s[1] = 1;
+    // // s[2] = s[4] = 0;
 
-    // (problemInstance.calculateSigma_S(3, s) > problemInstance.calculateSigma_T(3, s) ) ? s[3] = 1 : s[3] = 0;
+    // // (problemInstance.calculateSigma_S(3, s) > problemInstance.calculateSigma_T(3, s) ) ? s[3] = 1 : s[3] = 0;
     
-    // cout<<problemInstance.greedyValue(s)<<endl;
+    // // cout<<problemInstance.greedyValue(s)<<endl;
 
-    Solve solve;
-    solve.graspAlgorithm(problemInstance, 0.8);
+    // Solve solve;
+    // solve.graspAlgorithm(problemInstance, 0.8);
     // solve.constructSolution(problemInstance);
+
+    for (auto x: benchMarks){
+        Graph graph;
+        string s = "set1/g"+to_string(x.first) + ".rud";
+        
+        pair<int , int> nodeEdge = graph.readFromFile(s);
+        cout<<"For graph "<<x.first<<" nodes: "<<nodeEdge.first<<" edges: "<<nodeEdge.second<<endl;
+
+        ProblemInstance problemInstance(graph);
+        Solve solve;
+        vector<int> soln = solve.constructSolution(problemInstance);
+
+        for(auto y: soln){
+            cout<<y<< " ";
+        }
+        cout<<endl;        
+    }
 
     
 }
