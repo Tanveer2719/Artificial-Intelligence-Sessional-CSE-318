@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+<table border="1">
+<tr>
+<th colspan="3">Problem</th>
+<th colspan="3">Constructive Algorithm</th>
+<th colspan="2">Local Search</th>
+<th colspan="2">Grasp</th>
+<th rowspan="3">BestUpperBound</th>
+<th rowspan="3">Percentage(grasp/UpperBound)</th>
+</tr>
+<tr>
+<td rowspan="2">Name</td>
+<td rowspan="2">|V|</td>
+<td rowspan="2">|E|</td>
+<td rowspan="2">Randomized-1</td>
+<td rowspan="2">Greedy-1</td>
+<td rowspan="2">Semi-Greedy</td>
+<td colspan="2" align="center">Local-1</td>
+<td colspan="2" align="center">Grasp-1</td>
+</tr>
+<tr>
+<td>no.ITR</td><td>SearchValue</td>
+<td>no.ITR</td>
+<td>SearchValue</td></tr>
+<tr>
+<td align="center">G1</td>
+<td align="center">800</td>
+<td align="center">19176</td>
+<td align="center">9482</td>
+<td align="center">653</td>
+<td align="center">11096</td>
+<td align="center">50</td>
+<td align="center">11261</td>
+<td align="center">100</td>
+<td align="center">11357</td>
+<td align="center">12078</td>
+<td align="center">94.0305</td>
+</tr>
+<tr>
+<td align="center">G11</td>
+<td align="center">800</td>
+<td align="center">1600</td>
+<td align="center">38</td>
+<td align="center">-386</td>
+<td align="center">434</td>
+<td align="center">11</td>
+<td align="center">465</td>
+<td align="center">100</td>
+<td align="center">494</td>
+<td align="center">627</td>
+<td align="center">78.7879</td>
+</tr>
+<tr>
+<td align="center">G12</td>
+<td align="center">800</td>
+<td align="center">1600</td>
+<td align="center">8</td>
+<td align="center">-424</td>
+<td align="center">412</td>
+<td align="center">12</td>
+<td align="center">454</td>
+<td align="center">100</td>
+<td align="center">482</td>
+<td align="center">621</td>
+<td align="center">77.6167</td>
+</tr>
+<tr>
+<td align="center">G13</td>
+<td align="center">800</td>
+<td align="center">1600</td>
+<td align="center">42</td>
+<td align="center">-402</td>
+<td align="center">448</td>
+<td align="center">12</td>
+<td align="center">479</td>
+<td align="center">100</td>
+<td align="center">506</td>
+<td align="center">645</td>
+<td align="center">78.4496</td>
+</tr>
+<tr>
+<td align="center">G14</td>
+<td align="center">800</td>
+<td align="center">4694</td>
+<td align="center">2282</td>
+<td align="center">111</td>
+<td align="center">2925</td>
+<td align="center">24</td>
+<td align="center">2952</td>
+<td align="center">100</td>
+<td align="center">2981</td>
+<td align="center">3187</td>
+<td align="center">93.5362</td>
+</tr>
+<tr>
+<td align="center">G15</td>
+<td align="center">800</td>
+<td align="center">4661</td>
+<td align="center">2283</td>
+<td align="center">127</td>
+<td align="center">2907</td>
+<td align="center">23</td>
+<td align="center">2932</td>
+<td align="center">100</td>
+<td align="center">2961</td>
+<td align="center">3169</td>
+<td align="center">93.4364</td>
+</tr>
+<tr>
+<td align="center">G16</td>
+<td align="center">800</td>
+<td align="center">4672</td>
+<td align="center">2366</td>
+<td align="center">76</td>
+<td align="center">2898</td>
+<td align="center">25</td>
+<td align="center">2939</td>
+<td align="center">100</td>
+<td align="center">2968</td>
+<td align="center">3172</td>
+<td align="center">93.5687</td>
+</tr>
+<tr>
+<td align="center">G34</td>
+<td align="center">2000</td>
+<td align="center">4000</td>
+<td align="center">18</td>
+<td align="center">-1054</td>
+<td align="center">1042</td>
+<td align="center">29</td>
+<td align="center">1129</td>
+<td align="center">100</td>
+<td align="center">1168</td>
+<td align="center">1541</td>
+<td align="center">75.7949</td>
+</tr>
+<tr>
+<td align="center">G35</td>
+<td align="center">2000</td>
+<td align="center">11778</td>
+<td align="center">5916</td>
+<td align="center">210</td>
+<td align="center">7344</td>
+<td align="center">60</td>
+<td align="center">7405</td>
+<td align="center">100</td>
+<td align="center">7446</td>
+<td align="center">8000</td>
+<td align="center">93.075</td>
+</tr>
+<tr>
+<td align="center">G43</td>
+<td align="center">1000</td>
+<td align="center">9990</td>
+<td align="center">4964</td>
+<td align="center">1936</td>
+<td align="center">6220</td>
+<td align="center">50</td>
+<td align="center">6371</td>
+<td align="center">100</td>
+<td align="center">6437</td>
+<td align="center">7027</td>
+<td align="center">91.6038</td>
+</tr>
+<tr>
+<td align="center">G44</td>
+<td align="center">1000</td>
+<td align="center">9990</td>
+<td align="center">5009</td>
+<td align="center">3812</td>
+<td align="center">6293</td>
+<td align="center">51</td>
+<td align="center">6374</td>
+<td align="center">100</td>
+<td align="center">6470</td>
+<td align="center">7022</td>
+<td align="center">92.139</td>
+</tr>
+<tr>
+<td align="center">G45</td>
+<td align="center">1000</td>
+<td align="center">9990</td>
+<td align="center">5014</td>
+<td align="center">2517</td>
+<td align="center">6218</td>
+<td align="center">51</td>
+<td align="center">6374</td>
+<td align="center">100</td>
+<td align="center">6433</td>
+<td align="center">7020</td>
+<td align="center">91.6382</td>
+</tr>
+<tr>
+<td align="center">G48</td>
+<td align="center">3000</td>
+<td align="center">6000</td>
+<td align="center">2994</td>
+<td align="center">4</td>
+<td align="center">5100</td>
+<td align="center">59</td>
+<td align="center">5252</td>
+<td align="center">100</td>
+<td align="center">5396</td>
+<td align="center">6000</td>
+<td align="center">89.9333</td>
+</tr>
+<tr>
+<td align="center">G49</td>
+<td align="center">3000</td>
+<td align="center">6000</td>
+<td align="center">3008</td>
+<td align="center">6</td>
+<td align="center">5126</td>
+<td align="center">61</td>
+<td align="center">5268</td>
+<td align="center">100</td>
+<td align="center">5432</td>
+<td align="center">6000</td>
+<td align="center">90.5333</td>
+</tr>
+<tr>
+<td align="center">G50</td>
+<td align="center">3000</td>
+<td align="center">6000</td>
+<td align="center">3052</td>
+<td align="center">6</td>
+<td align="center">5132</td>
+<td align="center">61</td>
+<td align="center">5280</td>
+<td align="center">100</td>
+<td align="center">5446</td>
+<td align="center">5988</td>
+<td align="center">90.9486</td>
+</tr>
+</table>
+</body>
+</html>

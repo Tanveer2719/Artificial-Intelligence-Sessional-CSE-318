@@ -1,9 +1,0 @@
-findInitialSolution()
-    randomly select 50% of the nodes and put them in S&T randomly
-    while there is a unassigned vertex available iterate the while loop
-        find the RCL
-        from the RCL randomly select a batch of nodes and put them in S or T
-
-localSearch()
-    find the greedy value of the initialSolution
-    

@@ -2,10 +2,6 @@
 #define INF 1000000
 #define MAXITR 100
 
-/*
-The idea got from the article: 
-    https://mpc.zib.de/archive/2016/3/Santis2016_Article_ANonmonotoneGRASP.pdf
-*/
 using namespace std;
 
 list<pair<int,int>> benchMarks({
@@ -23,6 +19,16 @@ int random_number(int s, int e){
     return dis(gen);
 }
 
+void writeHtmlHeaders(ofstream &write){
+    write<<"<!DOCTYPE html>\n<html>\n<head></head>\n<body>\n";
+    write<<"<table border=\"1\">\n";
+    write<<"<tr>\n<th colspan=\"3\">Problem</th>\n<th colspan=\"3\">Constructive Algorithm</th>\n";
+    write<<"<th colspan=\"2\">Local Search</th>\n<th colspan=\"2\">Grasp</th>\n<th rowspan=\"3\">BestUpperBound</th>\n<th rowspan=\"3\">Percentage(grasp/UpperBound)</th>\n</tr>\n";
+    write<<"<tr>\n<td rowspan=\"2\">Name</td>\n<td rowspan=\"2\">|V|</td>\n<td rowspan=\"2\">|E|</td>\n";
+    write<<"<td rowspan=\"2\">Randomized-1</td>\n<td rowspan=\"2\">Greedy-1</td>\n<td rowspan=\"2\">Semi-Greedy</td>\n";
+    write<<"<td colspan=\"2\" align=\"center\">Local-1</td>\n<td colspan=\"2\" align=\"center\">Grasp-1</td>\n</tr>\n";
+    write<<"<tr>\n<td>no.ITR</td><td>SearchValue</td>\n<td>no.ITR</td>\n<td>SearchValue</td></tr>\n";
+}
 
 class Graph{
 
@@ -127,7 +133,6 @@ public:
     pair<int, int> calculateWminMax(vector<int>&solution){
         int minVal = INT_MAX;
         int maxVal = INT_MIN;
-
         for(int i = 1; i<= graph.nodes; i++){
             if(solution[i-1] == -1){
                 int sigma_S = calculateSigma_S(i, solution);
@@ -138,7 +143,7 @@ public:
                 maxVal = maxVal < max_sigma ? max_sigma : maxVal;
             } 
         } 
-        return make_pair(maxVal, minVal);
+        return make_pair(maxVal,minVal);
     }
 
     int calculateSigma_S(int v, vector<int>&solution){
@@ -158,8 +163,7 @@ public:
         }
         return sigma_T;
     }
-    
-    
+     
     int getVertices(){
         return graph.nodes;
     }
@@ -171,8 +175,7 @@ class Solve{
     
 public:
     
-    vector<int> calculateRCL(ProblemInstance &problemInstance, vector<int>& solution, double alpha){
-        
+    priority_queue<pair<int,int>> calculateRCL(ProblemInstance &problemInstance, vector<int>& solution, double alpha){
         pair<int, int>maxMin = problemInstance.calculateWminMax(solution);
         int wmax = maxMin.first;
         int wmin = maxMin.second;
@@ -180,16 +183,15 @@ public:
         double mu = wmin + alpha * (wmax - wmin);
 
         int vertices = problemInstance.getVertices();
-        vector<int>RCL;
+        priority_queue<pair<int,int>>RCL;
         
         for(int i = 1; i<= vertices; i++){
             if(solution[i-1] == -1){
                 int greedy_val = problemInstance.greedyFunction(i, solution);
                 if( greedy_val >= mu){
-                    RCL.push_back(i);
+                    RCL.push(make_pair(greedy_val, i));
                 }
-            }
-            
+            }  
         }
         return RCL;
     }
@@ -237,27 +239,32 @@ public:
     void findInitialSolution(ProblemInstance &problemInstance, vector<int>&solution, double alpha){
         int vertices = problemInstance.getVertices();
         
-        // randomly select 50% of the nodes and put them in S or T
-        for(int i = 0; i<(vertices >> 2); i++){
+        // randomly some of the nodes and put them in S or T
+        for(int i = 0; i<(vertices >> 3); i++){
             int indx = random_number(1, vertices);    // randomly select a vertex
             solution[indx-1] = random_number(0,1);   // put the randomly selected vertex in set S 
+        }
+
+        if((vertices >> 3 ) == 0 ){
+            int indx = random_number(1, vertices);
+            solution[indx-1] = random_number(0,1);
         }
        
         // while there is a unassigned vertex available iterate the loop
         while(count(solution.begin(), solution.end(), -1) > 0){
-            vector<int>RCL = calculateRCL(problemInstance, solution, alpha);
-            
+            priority_queue<pair<int,int>>RCL = calculateRCL(problemInstance, solution, alpha);
             if(RCL.empty()){
                 break;
             }
-            int batchSize = random_number(1, RCL.size()) ;
-            int prevVal = random_number(0,1);
+            int batchSize = random_number(1, RCL.size());
             while(batchSize){
-                int selectedIndex = random_number(0,RCL.size() -1);
-                int selectedVertex = RCL[selectedIndex];
-                solution[selectedVertex-1] = (prevVal == 0) ? 1 : 0;
+                pair<int,int>top = RCL.top();
+                RCL.pop();
+                int selectedVertex = top.second;
+                int sigma_S = problemInstance.calculateSigma_S(top.second, solution);
+                int sigma_T = problemInstance.calculateSigma_T(top.second, solution);
+                solution[selectedVertex-1] =sigma_T > sigma_S ? 1 : 0;
                 batchSize-- ;
-                RCL.erase(RCL.begin()+selectedIndex);
             } 
         }
     }
@@ -330,7 +337,7 @@ public:
             solution = vector<int>(vertices, -1);
             sameCount ++; 
 
-            cout<<i+1 << " : val = "<<bestVal<<endl;
+            cout<<i<< " : val = "<<bestVal<<endl;
 
         }
 
@@ -338,6 +345,7 @@ public:
         ret.push_back(avgLocalSearchVal);
         ret.push_back(MAXITR);
         ret.push_back(bestVal);
+
     }
     
     vector<int> constructSolution(ProblemInstance &problemInstance){
@@ -352,52 +360,43 @@ public:
         solution = vector<int>(vertices, -1);
         findGreedySolution(problemInstance, solution);
         ret.push_back(problemInstance.greedyValue(solution));
+        //cout<<"found greedy\n";
 
         solution = vector<int>(vertices, -1);
         findInitialSolution(problemInstance, solution, 0.6);
         ret.push_back(problemInstance.greedyValue(solution));
+        //cout<<"found semiGreedy\n";
 
-        graspAlgorithm(problemInstance, 0.7, ret);
+        graspAlgorithm(problemInstance, 0.8, ret);
         
 
         return ret;
     }
+
 };
 
 int main(){
-    // Graph graph;
-    // graph.readFromFile("random_graph.txt");
-
-    // ProblemInstance problemInstance(graph);
-    // vector<int>s(graph.nodes, -1);
-
-    // // s[0] = s[1] = 1;
-    // // s[2] = s[4] = 0;
-
-    // // (problemInstance.calculateSigma_S(3, s) > problemInstance.calculateSigma_T(3, s) ) ? s[3] = 1 : s[3] = 0;
-    
-    // // cout<<problemInstance.greedyValue(s)<<endl;
-
-    // Solve solve;
-    // solve.graspAlgorithm(problemInstance, 0.8);
-    // solve.constructSolution(problemInstance);
-
+    ofstream writeFile("report.html");
+    writeHtmlHeaders(writeFile);
     for (auto x: benchMarks){
         Graph graph;
         string s = "set1/g"+to_string(x.first) + ".rud";
-        
+        //string s = "set1/g"+to_string(11) + ".rud";
+
         pair<int , int> nodeEdge = graph.readFromFile(s);
-        cout<<"For graph "<<x.first<<" nodes: "<<nodeEdge.first<<" edges: "<<nodeEdge.second<<endl;
 
         ProblemInstance problemInstance(graph);
         Solve solve;
         vector<int> soln = solve.constructSolution(problemInstance);
 
+        
+        writeFile<<"<tr>\n<td align=\"center\">G"<<x.first<<"</td>\n<td align=\"center\">"<<nodeEdge.first<<"</td>\n<td align=\"center\">"<<nodeEdge.second<<"</td>\n";
         for(auto y: soln){
-            cout<<y<< " ";
+            writeFile<<"<td align=\"center\">"<<y<<"</td>\n";
         }
-        cout<<endl;        
+        writeFile<<"<td align=\"center\">"<<x.second<<"</td>\n<td align=\"center\">"<<soln[soln.size()-1]*100.0/x.second<<"</td>\n</tr>\n";
+        cout<<11<<"finished\n";
     }
-
-    
+    writeFile<<"</table>\n</body>\n</html>\n"; 
+    writeFile.close(); 
 }
