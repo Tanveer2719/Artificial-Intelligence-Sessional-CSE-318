@@ -5,8 +5,11 @@
 using namespace std;
 
 list<pair<int,int>> benchMarks({
-    {1,12078},{11,627},{12,621},{13,645}, {14 ,3187}, {15,3169}, {16,3172}, {34,1541}, {35, 8000}, {43, 7027}, {44, 7022}, {45, 7020}, {48,6000}, {49, 6000}, {50, 5988}
-    });
+    {1,12078},{11,627},{12,621},{13,645}, {14 ,3187}, {15,3169}, {16,3172}, 
+    {34,1541}, {35, 8000}, {43, 7027}, {44, 7022}, {45, 7020}, {48,6000}, 
+    {49, 6000}, {50, 5988}, {2,12084},{3,12077},{22,14123},{23,14129},{24,14131},
+    {32,1560},{33,1537},{36,7996},{37,8009}
+});
 
 
 int random_number(int s, int e){
@@ -35,6 +38,7 @@ class Graph{
 public:
     int nodes, edges;       // numbers of nodes and edges
     vector<vector<int>>adjMat;   //adjMat[u] = { pair<v, w> , pair<x, w> }
+    vector<vector<int>>edgeList;   // list of edges
 
     int maxU, maxV, maxW = INT_MIN; // for the maximum edge
 
@@ -45,10 +49,9 @@ public:
         adjMat.resize(nodes,vector<int>(nodes, INF ));
     }
     void addEdge(int u, int v, int w){
-        // adjMat[u-1].push_back(make_pair(v-1,w));
-        // adjMat[v-1].push_back(make_pair(u-1,w));   // since an undirected graph
         adjMat[u-1][v-1] = w;
         adjMat[v-1][u-1] = w;
+        edgeList.push_back({w, u, v});
     }
     void printGraph(){
         cout<<"Nodes: "<<nodes << " Edges: "<<edges<<endl<<"\n";
@@ -209,29 +212,60 @@ public:
     // if there is no edge between two nodes then, they are 
     // randomly partitioned
     void findGreedySolution(ProblemInstance &problemInstance, vector<int>&solution){
-        int vertices = problemInstance.getVertices();
-        solution[problemInstance.graph.maxU - 1] = random_number(0,1);
-        solution[problemInstance.graph.maxV - 1] = 1 - solution[problemInstance.graph.maxU - 1];
-
-        for(int i = 1; i<= vertices; i++){
-            if(i == problemInstance.graph.maxU || i == problemInstance.graph.maxV){
+        vector<set<int>>cut(2);
+        vector<vector<int>>edges = problemInstance.graph.edgeList;
+        sort(edges.begin(), edges.end(),greater<vector<int>>());
+        cut[0].insert(edges[0][1]);
+        cut[1].insert(edges[0][2]);
+        solution[edges[0][1]-1] = 0;
+        solution[edges[0][2]] = 1;
+        
+        // for each of the edges
+        for(int i = 0; i<edges.size(); i++){
+            // if the endpoints are already in the cut then continue to the next edge
+            int u = edges[i][1], v = edges[i][2];
+            if(solution[u-1] != -1 && solution[v-1] != -1)
                 continue;
+            
+            // the vertex (u) does not belong to any of the cut
+            if(solution[u-1] == -1){
+                // look for the maximum value that the vertex creates
+                int s = 0, t = 0;
+                for(auto x: cut[0]){
+                    if(problemInstance.graph.adjMat[x-1][u-1] != INF){
+                        s += problemInstance.graph.adjMat[x-1][u-1];
+                    }
+                }
+                for(auto x: cut[1]){
+                    if(problemInstance.graph.adjMat[x-1][u-1] != INF){
+                        t += problemInstance.graph.adjMat[x-1][u-1];
+                    }
+                }
+                if(s>t) solution[u-1] = 1;
+                else if(s<t) solution[u-1] = 0;
+                else solution[u-1] = random_number(0,1);   
             }
-            int x = problemInstance.calculateSigma_S(i, solution);
-            int y = problemInstance.calculateSigma_T(i, solution);
 
-            if(x > y){
-                solution[i-1] = 1;  // push to S
+            // the vertex (v) does not belong to any of the cut
+            if(solution[v-1] == -1){
+                // look for the maximum value that the vertex creates
+                int s = 0, t = 0;
+                for(auto x: cut[0]){
+                    if(problemInstance.graph.adjMat[x-1][v-1] != INF){
+                        s += problemInstance.graph.adjMat[x-1][v-1];
+                    }
+                }
+                for(auto x: cut[1]){
+                    if(problemInstance.graph.adjMat[x-1][v-1] != INF){
+                        t += problemInstance.graph.adjMat[x-1][v-1];
+                    }
+                }
+                if(s>t) solution[v-1] = 1;
+                else if(s<t) solution[v-1] = 0;
+                else solution[v-1] = random_number(0,1);   
             }
-            else if(x < y ){
-                solution[i-1] = 0;  // push to T
-
-            }
-            else{
-                solution[i-1] = random_number(0, 1);
-            }
-
         }
+        
         
     }
     
@@ -399,4 +433,19 @@ int main(){
     }
     writeFile<<"</table>\n</body>\n</html>\n"; 
     writeFile.close(); 
+    // for (auto x: benchMarks){
+    //     Graph graph;
+    //     string s = "set1/g"+to_string(x.first) + ".rud";
+    //     //string s = "set1/g"+to_string(11) + ".rud";
+
+    //     pair<int , int> nodeEdge = graph.readFromFile(s);
+
+    //     ProblemInstance problemInstance(graph);
+    //     Solve solve;
+    //     vector<int>solution(nodeEdge.first, -1);
+    //     solve.findGreedySolution(problemInstance, solution);
+        
+    //     cout<<x.first<<" "<<problemInstance.greedyValue(solution)<<endl;
+    // }
+
 }
