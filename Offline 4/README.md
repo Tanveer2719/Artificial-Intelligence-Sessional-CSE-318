@@ -84,9 +84,11 @@ We Divided the data set randomly between training (80%) and testing (20%) sets. 
 
 how data is splitted ?
 Used this for random splitting
+```bash
                 random_device r;
                 seed_seq seed{r(), r(), r(), r(), r(), r(), r(), r()};
                 mt19937 eng(seed);
+```
 ```bash
 void 
 splitDataSet(vector<vector<string>>tableData,
@@ -103,5 +105,5 @@ splitDataSet(vector<vector<string>>tableData,
 ``` 
 
 ## Result
-After 20 iterations of the random splitting of the data, training and testing of the data, the results are provided in the results folder.
+After 20 iterations of the random splitting of the data, training and testing of the data, the results are provided in the results.html.
 
